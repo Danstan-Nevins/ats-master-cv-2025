@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pdfParse = require("pdf-parse"); // Use CommonJS import
+import * as pdfParse from "pdf-parse"; // ESM-compatible import
 import * as mammoth from "mammoth";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     let text = "";
 
     if (file.name.endsWith(".pdf")) {
-      const data = await pdfParse(buffer); // Works in serverless
+      const data = await pdfParse(buffer); // no .default needed
       text = data.text;
     } else if (file.name.endsWith(".docx")) {
       const result = await mammoth.extractRawText({ buffer });
@@ -30,6 +30,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ text });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to parse file", details: String(err) }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to parse file", details: String(err) },
+      { status: 500 }
+    );
   }
 }
