@@ -1,23 +1,8 @@
 import { NextResponse } from "next/server";
+import pdfParse = require("pdf-parse"); // Use CommonJS import
 import * as mammoth from "mammoth";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 
 export const runtime = "nodejs";
-
-async function extractPdfText(buffer: Buffer) {
-  const loadingTask = getDocument({ data: buffer });
-  const pdf = await loadingTask.promise;
-  let text = "";
-
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const pageText = content.items.map((item: any) => item.str).join(" ");
-    text += pageText + "\n";
-  }
-
-  return text;
-}
 
 export async function POST(req: Request) {
   try {
@@ -33,20 +18,18 @@ export async function POST(req: Request) {
     let text = "";
 
     if (file.name.endsWith(".pdf")) {
-      text = await extractPdfText(buffer);
+      const data = await pdfParse(buffer); // Works in serverless
+      text = data.text;
     } else if (file.name.endsWith(".docx")) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
     } else {
-      return NextResponse.json({ error: "Unsupported file type" });
+      return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
     }
 
     return NextResponse.json({ text });
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
-      { error: "Failed to parse file", details: String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to parse file", details: String(err) }, { status: 500 });
   }
 }
