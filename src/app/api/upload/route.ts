@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import * as pdfParse from "pdf-parse"; // ESM-compatible import
 import * as mammoth from "mammoth";
+import pdfParsePkg from "pdf-parse";
+
+const pdfParse = pdfParsePkg as any; // workaround for ESM type issues
 
 export const runtime = "nodejs";
 
@@ -18,7 +20,7 @@ export async function POST(req: Request) {
     let text = "";
 
     if (file.name.endsWith(".pdf")) {
-      const data = await pdfParse(buffer); // no .default needed
+      const data = await pdfParse(buffer); // works now
       text = data.text;
     } else if (file.name.endsWith(".docx")) {
       const result = await mammoth.extractRawText({ buffer });
