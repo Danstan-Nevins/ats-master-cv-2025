@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import * as mammoth from "mammoth";
-import { getDocument } from "pdfjs-dist";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 
 export const runtime = "nodejs";
 
